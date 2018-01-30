@@ -1,0 +1,7 @@
+---
+
+mysql_port: 3306
+expire_mysql_log: 5
+# user: zabbix
+# password: zabbix
+# root_password: 12345

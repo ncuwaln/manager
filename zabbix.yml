@@ -1,0 +1,17 @@
+---
+
+- hosts: all
+  remote_user: root
+  roles:
+    - setup
+
+- hosts: dbserver
+  vars:
+    user: zabbix
+    password: zabbix
+    root_password: root
+    master_user: zabbix
+    master_password: zabbix
+  remote_user: root
+  roles:
+    - db

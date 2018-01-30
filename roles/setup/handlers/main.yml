@@ -1,0 +1,7 @@
+---
+
+- name: clean yum cache
+  command: yum clean all
+
+- name: generate yum cache
+  command: yum makecache

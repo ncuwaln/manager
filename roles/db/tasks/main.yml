@@ -1,0 +1,76 @@
+---
+- name: install mysql
+  yum: name={{ item }} state=installed
+  with_items:
+   - mariadb
+   - mariadb-server
+   - MySQL-python
+
+- name: change master mysql config
+  delegate_to: "{{ groups['master_dbserver'][0] }}"
+  template: src=master.cnf.j2 dest=/etc/my.cnf
+  notify: restart mysql
+
+- name: change slave mysql config
+  delegate_to: "{{ groups['slave_dbserver'][0] }}"
+  template: src=slave.cnf.j2 dest=/etc/my.cnf
+  notify: restart mysql
+
+- name: start mysql service
+  service: name=mariadb state=started
+
+- name: change root password
+  mysql_user: name=root password={{ root_password }} sql_log_bin=no
+  ignore_errors: true
+
+- name: create zabbix db user
+  mysql_user: name={{ user }} password={{ password }} priv=*.*:ALL host='%' state=present login_user=root login_password={{ root_password }} sql_log_bin=no
+
+- name: get master status
+  mysql_replication:
+    mode: getmaster
+    login_user: root
+    login_password: "{{ root_password }}"
+  delegate_to: "{{ groups['master_dbserver'][0] }}"
+  register: master
+
+- name: show master info
+  debug: var=master
+
+- name: get slave status
+  mysql_replication:
+    mode: getslave
+    login_user: root
+    login_password: "{{ root_password }}"
+  delegate_to: "{{ groups['slave_dbserver'][0] }}"
+  register: slave
+
+- name: show slave info
+  debug: var=slave
+
+- name: stop slave
+  delegate_to: "{{ groups['slave_dbserver'][0] }}"
+  mysql_replication:
+    login_user: root
+    login_password: "{{ root_password }}"
+    mode: stopslave
+  when: "slave.Slave_SQL_Running == 'yes' or 'Last_IO_Errno' in slave"
+
+- name: add replication
+  delegate_to: "{{ groups['slave_dbserver'][0] }}"
+  mysql_replication:
+    mode: changemaster
+    master_host: "{{ groups['master_dbserver'][0] }}"
+    master_user: "{{ master_user }}"
+    master_password: "{{ master_password }}"
+    master_log_file: "{{ master.File }}"
+    master_log_pos: "{{ master.Position }}"
+    login_user: root
+    login_password: "{{ root_password }}"
+
+- name: start slave
+  delegate_to: "{{ groups['slave_dbserver'][0] }}"
+  mysql_replication:
+    mode: startslave
+    login_user: root
+    login_password: "{{ root_password }}"
