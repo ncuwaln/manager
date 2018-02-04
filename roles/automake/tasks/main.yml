@@ -54,7 +54,7 @@
   get_url: url="ftp://ftp.gnu.org/gnu/libtool/libtool-{{libtool_version}}.tar.gz"
                         dest="{{software_path}}/libtool-{{libtool_version}}.tar.gz"
                         validate_certs=no
-  when: file_exist['results'][3]['failed'] and directroy_exist['results'][3]['failed']
+  when: file_exist['results'][3]['failed']
 
 # - name: unarchive tgz
 #   delegate_to: "127.0.0.1"
@@ -128,6 +128,7 @@
    - perl
    - perl-Test-Harness
    - perl-Thread-Queue
+   - perl(Data::Dumper)
 
 - name: configure m4
   command: chdir="{{remote_software_path}}/m4-{{m4_version}}" ./configure

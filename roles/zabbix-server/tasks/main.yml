@@ -80,9 +80,11 @@
 
 - name: add zabbix group
   command: groupadd zabbix
+  ignore_errors: true
 
 - name: add zabbix user
   command: useradd -g zabbix zabbix
+  ignore_errors: true
 
 - name: install requirements
   yum: name={{ item }} state=installed

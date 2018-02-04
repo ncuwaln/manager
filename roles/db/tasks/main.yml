@@ -24,7 +24,7 @@
   notify: restart mysql
 
 - name: start mysql service
-  service: name=mariadb state=started
+  service: name=mariadb state=started enabled=yes
 
 - name: change root password
   mysql_user: name=root password={{ root_password }} sql_log_bin=no
@@ -61,7 +61,6 @@
     login_user: root
     login_password: "{{ root_password }}"
     mode: stopslave
-  when: "slave.Slave_SQL_Running == 'yes' or 'Last_IO_Errno' in slave"
 
 - name: add replication
   delegate_to: "{{ groups['slave_dbserver'][0] }}"
