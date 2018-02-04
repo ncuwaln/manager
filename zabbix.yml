@@ -4,6 +4,7 @@
   remote_user: root
   roles:
     - setup
+  tags: setup
 
 - hosts: dbserver
   vars:
@@ -15,3 +16,20 @@
   remote_user: root
   roles:
     - db
+  tags: db_server
+
+- hosts: all
+  remote_user: root
+  roles:
+    - automake
+  tags: automake
+
+- hosts: zabbix_server
+  remote_user: root
+  vars:
+    db_user: zabbix
+    db_password: zabbix
+    db_name: zabbix_server
+  roles:
+    - zabbix-server
+  tags: zabbix_server

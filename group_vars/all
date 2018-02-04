@@ -2,6 +2,10 @@
 
 mysql_port: 3306
 expire_mysql_log: 5
-# user: zabbix
-# password: zabbix
-# root_password: 12345
+software_path: /tmp
+remote_software_path: /tmp
+zabbix_version: 3.4.6
+automake_version: 1.15
+m4_version: 1.4.17
+autoconf_version: 2.69
+libtool_version: 2.4

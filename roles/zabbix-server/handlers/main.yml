@@ -1,0 +1,6 @@
+---
+- name: start zabbix
+  command: zabbix_server
+
+# - name: stop zabbix
+#   command: zabbix

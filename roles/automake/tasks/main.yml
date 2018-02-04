@@ -1,0 +1,154 @@
+---
+- name: check tar.gz file
+  delegate_to: "127.0.0.1"
+  run_once: true
+  command: ls {{item}}
+  with_items:
+    - "{{software_path}}/m4-{{m4_version}}.tar.gz"
+    - "{{software_path}}/autoconf-{{autoconf_version}}.tar.gz"
+    - "{{software_path}}/automake-{{automake_version}}.tar.gz"
+    - "{{software_path}}/libtool-{{libtool_version}}.tar.gz"
+  ignore_errors: true
+  register: file_exist
+
+# - name: check directroy
+#   delegate_to: "127.0.0.1"
+#   run_once: true
+#   command: ls {{item}}
+#   with_items:
+#     - "{{software_path}}/m4-{{m4_version}}"
+#     - "{{software_path}}/autoconf-{{autoconf_version}}"
+#     - "{{software_path}}/automake-{{automake_version}}"
+#     - "{{software_path}}/libtool-{{libtool_version}}"
+#   ignore_errors: true
+#   register: directroy_exist
+
+
+- name: download m4 {{m4_version}}
+  delegate_to: "127.0.0.1"
+  run_once: true
+  get_url: url="ftp://ftp.gnu.org/gnu/m4/m4-{{m4_version}}.tar.gz"
+                        dest="{{software_path}}/m4-{{m4_version}}.tar.gz"
+                        validate_certs=no
+  when: file_exist['results'][0]['failed']
+
+- name: download autoconf {{autoconf_version}}
+  delegate_to: "127.0.0.1"
+  run_once: true
+  get_url: url="ftp://ftp.gnu.org/gnu/autoconf/autoconf-{{autoconf_version}}.tar.gz"
+                        dest="{{software_path}}/autoconf-{{autoconf_version}}.tar.gz"
+                        validate_certs=no
+  when: file_exist['results'][1]['failed']
+
+- name: download automake {{automake_version}}
+  delegate_to: "127.0.0.1"
+  run_once: true
+  get_url: url="http://ftp.gnu.org/gnu/automake/automake-{{automake_version}}.tar.gz"
+                        dest="{{software_path}}/automake-{{automake_version}}.tar.gz"
+                        validate_certs=no
+  when: file_exist['results'][2]['failed']
+
+- name: download libtool {{libtool_version}}
+  delegate_to: "127.0.0.1"
+  run_once: true
+  get_url: url="ftp://ftp.gnu.org/gnu/libtool/libtool-{{libtool_version}}.tar.gz"
+                        dest="{{software_path}}/libtool-{{libtool_version}}.tar.gz"
+                        validate_certs=no
+  when: file_exist['results'][3]['failed'] and directroy_exist['results'][3]['failed']
+
+# - name: unarchive tgz
+#   delegate_to: "127.0.0.1"
+#   run_once: true
+#   unarchive: src={{item}} dest={{software_path}} copy=yes
+#   with_items:
+#     - "{{software_path}}/m4-{{m4_version}}.tar.gz"
+#     - "{{software_path}}/autoconf-{{autoconf_version}}.tar.gz"
+#     - "{{software_path}}/automake-{{automake_version}}.tar.gz"
+#     - "{{software_path}}/libtool-{{libtool_version}}.tar.gz"
+
+- name: check remote directroy
+  command: ls {{item}}
+  with_items:
+    - "{{remote_software_path}}/m4-{{m4_version}}"
+    - "{{remote_software_path}}/autoconf-{{autoconf_version}}"
+    - "{{remote_software_path}}/automake-{{automake_version}}"
+    - "{{remote_software_path}}/libtool-{{libtool_version}}"
+  ignore_errors: true
+  register: remote_directroy_exist
+
+- name: check remote tar.gz file
+  delegate_to: "127.0.0.1"
+  run_once: true
+  command: ls {{item}}
+  with_items:
+    - "{{remote_software_path}}/m4-{{m4_version}}.tar.gz"
+    - "{{remote_software_path}}/autoconf-{{autoconf_version}}.tar.gz"
+    - "{{remote_software_path}}/automake-{{automake_version}}.tar.gz"
+    - "{{remote_software_path}}/libtool-{{libtool_version}}.tar.gz"
+  ignore_errors: true
+  register: remote_file_exist
+
+- name: copy m4
+  copy: src={{software_path}}/m4-{{m4_version}} dest={{remote_software_path}}
+  when: remote_file_exist['results'][0]['failed'] and remote_directroy_exist['results'][0]['failed']
+
+- name: copy autoconf
+  copy: src={{software_path}}/autoconf-{{autoconf_version}} dest={{remote_software_path}}
+  when: remote_file_exist['results'][1]['failed'] and remote_directroy_exist['results'][1]['failed']
+
+- name: copy automake
+  copy: src={{software_path}}/automake-{{automake_version}} dest={{remote_software_path}}
+  when: remote_file_exist['results'][2]['failed'] and remotw_directroy_exist['results'][2]['failed']
+
+- name: copy libtool
+  copy: src={{software_path}}/libtool-{{libtool_version}} dest={{remote_software_path}}
+  when: remote_file_exist['results'][3]['failed'] and remote_directroy_exist['results'][3]['failed']
+
+- name: unarchive m4 tgz
+  unarchive: src={{item}} dest={{remote_software_path}} copy=yes
+  with_items:
+    - "{{remote_software_path}}/m4-{{m4_version}}.tar.gz"
+    - "{{remote_software_path}}/autoconf-{{autoconf_version}}.tar.gz"
+    - "{{remote_software_path}}/automake-{{automake_version}}.tar.gz"
+    - "{{remote_software_path}}/libtool-{{libtool_version}}.tar.gz"
+
+- name: change file mode
+  file: mode="u+rwx" path={{item}}/configure
+  with_items:
+    - "{{remote_software_path}}/m4-{{m4_version}}"
+    - "{{remote_software_path}}/autoconf-{{autoconf_version}}"
+    - "{{remote_software_path}}/automake-{{automake_version}}"
+    - "{{remote_software_path}}/libtool-{{libtool_version}}"
+
+- name: install requirements
+  yum: name={{ item }} state=installed
+  with_items:
+   - make
+   - gcc
+   - perl
+   - perl-Test-Harness
+   - perl-Thread-Queue
+
+- name: configure m4
+  command: chdir="{{remote_software_path}}/m4-{{m4_version}}" ./configure
+
+- name: install m4
+  make: chdir="{{remote_software_path}}/m4-{{m4_version}}" target=install
+
+- name: configure autoconf
+  command: chdir="{{remote_software_path}}/autoconf-{{autoconf_version}}" ./configure
+
+- name: install autoconf
+  make: chdir="{{remote_software_path}}/autoconf-{{autoconf_version}}" target=install
+
+- name: configure automake
+  command: chdir="{{remote_software_path}}/automake-{{automake_version}}" ./configure
+
+- name: install automake
+  make: chdir="{{remote_software_path}}/automake-{{automake_version}}" target=install
+
+- name: configure libtool
+  command: chdir="{{remote_software_path}}/libtool-{{libtool_version}}" ./configure
+
+- name: install libtool
+  make: chdir="{{remote_software_path}}/libtool-{{libtool_version}}" target=install
