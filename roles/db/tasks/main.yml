@@ -15,11 +15,13 @@
 
 - name: change master mysql config
   delegate_to: "{{ groups['master_dbserver'][0] }}"
+  run_once: true
   template: src=master.cnf.j2 dest=/etc/my.cnf
   notify: restart mysql
 
 - name: change slave mysql config
   delegate_to: "{{ groups['slave_dbserver'][0] }}"
+  run_once: true
   template: src=slave.cnf.j2 dest=/etc/my.cnf
   notify: restart mysql
 
@@ -39,10 +41,8 @@
     login_user: root
     login_password: "{{ root_password }}"
   delegate_to: "{{ groups['master_dbserver'][0] }}"
+  run_once: true
   register: master
-
-- name: show master info
-  debug: var=master
 
 - name: get slave status
   mysql_replication:
@@ -50,13 +50,12 @@
     login_user: root
     login_password: "{{ root_password }}"
   delegate_to: "{{ groups['slave_dbserver'][0] }}"
+  run_once: true
   register: slave
-
-- name: show slave info
-  debug: var=slave
 
 - name: stop slave
   delegate_to: "{{ groups['slave_dbserver'][0] }}"
+  run_once: true
   mysql_replication:
     login_user: root
     login_password: "{{ root_password }}"
@@ -64,6 +63,7 @@
 
 - name: add replication
   delegate_to: "{{ groups['slave_dbserver'][0] }}"
+  run_once: true
   mysql_replication:
     mode: changemaster
     master_host: "{{ groups['master_dbserver'][0] }}"
@@ -76,6 +76,7 @@
 
 - name: start slave
   delegate_to: "{{ groups['slave_dbserver'][0] }}"
+  run_once: true
   mysql_replication:
     mode: startslave
     login_user: root

@@ -103,6 +103,8 @@
 
 - name: init sql
   mysql_db: state=import login_user={{db_user}} login_password={{db_password}} target={{item}} name={{db_name}} login_host={{ groups['master_dbserver'][0] }}
+  delegate_to: "{{groups['master_dbserver'][0]}}"
+  run_once: true
   with_items:
     - "{{remote_software_path}}/zabbix-{{zabbix_version}}/database/mysql/schema.sql"
     - "{{remote_software_path}}/zabbix-{{zabbix_version}}/database/mysql/images.sql"
@@ -117,3 +119,12 @@
 
 - name: change zabbix conf
   template: src=zabbix_server.conf.j2 dest=/usr/local/etc/zabbix_server.conf
+
+- name: register zabbix_server as service
+  command: cp {{remote_software_path}}/zabbix-{{zabbix_version}}/misc/init.d/fedora/core/zabbix_server  /etc/init.d
+
+- name: change file mode
+  file: mode="u+rwx" path=/etc/init.d/zabbix_server
+
+- name: start zabbix_server as service
+  systemd: name=zabbix_server state=started enabled=yes

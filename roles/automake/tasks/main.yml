@@ -112,13 +112,13 @@
     - "{{remote_software_path}}/automake-{{automake_version}}.tar.gz"
     - "{{remote_software_path}}/libtool-{{libtool_version}}.tar.gz"
 
-- name: change file mode
-  file: mode="u+rwx" path={{item}}/configure
-  with_items:
-    - "{{remote_software_path}}/m4-{{m4_version}}"
-    - "{{remote_software_path}}/autoconf-{{autoconf_version}}"
-    - "{{remote_software_path}}/automake-{{automake_version}}"
-    - "{{remote_software_path}}/libtool-{{libtool_version}}"
+# - name: change file mode
+#   file: mode="u+rwx" path={{item}}/configure
+#   with_items:
+#     - "{{remote_software_path}}/m4-{{m4_version}}"
+#     - "{{remote_software_path}}/autoconf-{{autoconf_version}}"
+#     - "{{remote_software_path}}/automake-{{automake_version}}"
+#     - "{{remote_software_path}}/libtool-{{libtool_version}}"
 
 - name: install requirements
   yum: name={{ item }} state=installed
